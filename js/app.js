@@ -80,6 +80,8 @@ var Player = function() {
     this.sprite = 'images/char-boy.png';
     this.victory = 0;
     this.defeat = 0;
+    this.longestStreak = 0;
+    this.streak = 0;
     this.setCurrentCell();
     this.displayCounters();
 };
@@ -88,6 +90,7 @@ Player.prototype.setCurrentCell = function() {
     this.currentCell = [Math.round(this.x / cell.width), Math.round(this.y / cell.height)];
     if (this.currentCell[1] === 0) {
         this.victory++;
+        this.updateStreakCounter();
         this.displayCounters();
         game.start();
     }
@@ -98,11 +101,18 @@ Player.prototype.displayCounters = function() {
     document.querySelector('.counters-round .defeat').innerHTML = this.defeat;
 };
 
+Player.prototype.updateStreakCounter = function() {
+    this.streak++;
+    this.longestStreak = this.streak > this.longestStreak ? this.streak : this.longestStreak;
+};
+
 Player.prototype.updateDefeatCounter = function() {
     this.defeat++;
+    this.streak = 0;
     this.displayCounters();
     if (this.defeat > 2) {
         game.restart({
+            streak: this.longestStreak,
             victory: this.victory,
             defeat: this.defeat
         });
@@ -158,15 +168,15 @@ Player.prototype.handleInput = function(direction) {
 
 var Game = function(victory, defeat) {
     this.round = 1;
-    this.counters = {
-        victory: 0,
-        defeat: 0
-    };
+    this.victory = 0;
+    this.defeat = 0;
+    this.ratio = 0;
+    this.streak = 0;
 };
 
 Game.prototype.restart = function(playerCounters) {
     player = new Player();
-    this.setGameOver();
+    //this.setGameOver();
     game.start();
     this.updateCounters(playerCounters);
 };
@@ -186,15 +196,30 @@ Game.prototype.setGameOver = function() {
 };
 
 Game.prototype.showCounters = function() {
-    document.querySelector('.counters-round .round').innerHTML = this.round;
-    document.querySelector('.counters-total .victory span').innerHTML = this.counters.victory;
-    document.querySelector('.counters-total .defeat span').innerHTML = this.counters.defeat;
+    document.querySelector('.counters .round span').innerHTML = this.round;
+    document.querySelector('.counters-total .victory span').innerHTML = this.victory;
+    document.querySelector('.counters-total .defeat span').innerHTML = this.defeat;
+    document.querySelector('.counters-total .streak span').innerHTML = this.streak;
+    this.updateRatioCounter();
+};
+
+Game.prototype.updateRatioCounter = function() {
+    var ratioContainer = document.querySelector('.counters-total .ratio span');
+    ratioContainer.classList.toggle('victory', this.ratio > 50);
+    ratioContainer.innerHTML = this.ratio;
+};
+
+Game.prototype.calculateRatio = function() {
+    var total = this.defeat + this.victory;
+    return Math.round((this.victory / total) * 100);
 };
 
 Game.prototype.updateCounters = function(playerCounters) {
     this.round++;
-    this.counters.victory += playerCounters.victory;
-    this.counters.defeat += playerCounters.defeat;
+    this.victory += playerCounters.victory;
+    this.defeat += playerCounters.defeat;
+    this.ratio = this.calculateRatio();
+    this.streak = playerCounters.streak > this.streak ? playerCounters.streak : this.streak;
     this.showCounters();
 };
 
