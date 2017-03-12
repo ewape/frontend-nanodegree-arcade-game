@@ -42,7 +42,9 @@ body {
 .counter small {
 	display: inline-block;
 	font-size: 1.4rem;
+	font-weight: bold;
 	text-align: right;
+	vertical-align: middle;
 }
 
 .counters-total {
@@ -55,6 +57,11 @@ body {
 	border-radius: 0;
 	background-color: transparent;
 	color: #906732;
+}
+
+.counters-total .round small {
+	font-size: 4rem;
+	font-weight: normal;
 }
 
 .victory {
