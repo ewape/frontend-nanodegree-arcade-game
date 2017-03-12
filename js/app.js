@@ -204,9 +204,9 @@ Game.prototype.showCounters = function() {
 };
 
 Game.prototype.updateRatioCounter = function() {
-    var ratioContainer = document.querySelector('.counters-total .ratio span');
+    var ratioContainer = document.querySelector('.counters-total .ratio');
     ratioContainer.classList.toggle('victory', this.ratio > 50);
-    ratioContainer.innerHTML = this.ratio;
+    ratioContainer.childNodes[2].innerHTML = this.ratio;
 };
 
 Game.prototype.calculateRatio = function() {
