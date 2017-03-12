@@ -1,15 +1,13 @@
-
-
-var allEnemies;
-var cell = {
-    width: 101,
-    height: 83,
-    grid: {
-        x: 5,
-        y: 6
-    },
-    offset: 25
-};
+var allEnemies, game, player,
+    cell = {
+        width: 101,
+        height: 83,
+        grid: {
+            x: 5,
+            y: 6
+        },
+        offset: 25
+    };
 
 // Enemies our player must avoid
 var Enemy = function(i) {
@@ -26,12 +24,12 @@ var Enemy = function(i) {
     this.y = (this.index * cell.height) - cell.offset;
 
     this.setCurrentCell();
-    this.setSpeed();   
+    this.setSpeed();
 
 };
 
 Enemy.prototype.setCurrentCell = function() {
-    this.currentCell = [Math.round(this.x / cell.width), Math.round((this.y -  cell.offset) / cell.height)+1];
+    this.currentCell = [Math.round(this.x / cell.width), Math.round((this.y - cell.offset) / cell.height) + 1];
 };
 
 // Update the enemy's position, required method for game
@@ -51,12 +49,13 @@ Enemy.prototype.update = function(dt) {
 
     this.setCurrentCell();
     this.checkCollision();
-    
+
 };
 
 Enemy.prototype.checkCollision = function() {
     if (this.currentCell[0] === player.currentCell[0] && this.currentCell[1] === player.currentCell[1]) {
-        startGame();
+        game.start();
+        player.updateDefeatCounter();
     }
 };
 // Draw the enemy on the screen, required method for game
@@ -65,13 +64,13 @@ Enemy.prototype.render = function() {
 };
 
 Enemy.prototype.resetPosition = function() {
-    this.x = -cell.width; 
-    this.y = (Math.floor((Math.random() * this.height) +1) * cell.height) - cell.offset;
-    this.setSpeed();  
+    this.x = -cell.width;
+    this.y = (Math.floor((Math.random() * this.height) + 1) * cell.height) - cell.offset;
+    this.setSpeed();
 };
 
 Enemy.prototype.setSpeed = function() {
-    this.speed = Math.floor((Math.random() * this.speedRange[1]) + this.speedRange[0]) *100;
+    this.speed = Math.floor((Math.random() * this.speedRange[1]) + this.speedRange[0]) * 100;
 };
 // Now write your own player class
 // This class requires an update(), render() and
@@ -80,19 +79,33 @@ Enemy.prototype.setSpeed = function() {
 var Player = function() {
     this.sprite = 'images/char-boy.png';
     this.victory = 0;
-    this.reset();
+    this.defeat = 0;
     this.setCurrentCell();
-     document.querySelector('.victory').innerHTML = this.victory;
+    this.displayCounters();
 };
 
 Player.prototype.setCurrentCell = function() {
     this.currentCell = [Math.round(this.x / cell.width), Math.round(this.y / cell.height)];
     if (this.currentCell[1] === 0) {
-        console.log('Won the game!');
         this.victory++;
-        document.querySelector('.victory').innerHTML = this.victory;
-        console.log('Won the game ' + this.victory + ' times!' );
-        startGame();
+        this.displayCounters();
+        game.start();
+    }
+};
+
+Player.prototype.displayCounters = function() {
+    document.querySelector('.counters-round .victory').innerHTML = this.victory;
+    document.querySelector('.counters-round .defeat').innerHTML = this.defeat;
+};
+
+Player.prototype.updateDefeatCounter = function() {
+    this.defeat++;
+    this.displayCounters();
+    if (this.defeat > 2) {
+        game.restart({
+            victory: this.victory,
+            defeat: this.defeat
+        });
     }
 };
 
@@ -107,6 +120,7 @@ Player.prototype.update = function() {
 Player.prototype.reset = function() {
     this.x = cell.width * 2;
     this.y = (cell.height * cell.grid.y) - cell.height - cell.offset;
+    this.displayCounters();
 };
 
 Player.prototype.render = function() {
@@ -114,32 +128,74 @@ Player.prototype.render = function() {
 };
 
 Player.prototype.handleInput = function(direction) {
-    
-    switch(direction) {
+
+    switch (direction) {
         case 'left':
             if (this.x > 0) {
-                this.x-=cell.width;
+                this.x -= cell.width;
             }
             break;
         case 'right':
             if (this.x < (cell.width * cell.grid.x) - cell.width) {
-                this.x+=cell.width;
+                this.x += cell.width;
             }
             break;
         case 'up':
             if (this.y >= 0) {
-                this.y-= cell.height;
+                this.y -= cell.height;
             }
             break;
         case 'down':
             if (this.y < (cell.height * cell.grid.y) - cell.height - cell.offset) {
-                this.y+= cell.height;
+                this.y += cell.height;
             }
             break;
         default:
-        console.log('Wrong direction!');
+            console.log('Wrong direction!');
     }
 
+};
+
+var Game = function(victory, defeat) {
+    this.round = 1;
+    this.counters = {
+        victory: 0,
+        defeat: 0
+    };
+};
+
+Game.prototype.restart = function(playerCounters) {
+    player = new Player();
+    this.setGameOver();
+    game.start();
+    this.updateCounters(playerCounters);
+};
+
+Game.prototype.start = function() {
+    this.showCounters();
+    player.reset();
+    allEnemies = [];
+    for (var i = 0; i < 3; i++) {
+        addEnemy(i);
+    }
+};
+
+Game.prototype.setGameOver = function() {
+    this.setGameOverClass = 'game-over';
+    document.body.classList.add(this.setGameOverClass);
+};
+
+Game.prototype.showCounters = function() {
+    document.querySelector('.counters-round .round').innerHTML = this.round;
+    document.querySelector('.counters-total .victory span').innerHTML = this.counters.victory;
+    document.querySelector('.counters-total .defeat span').innerHTML = this.counters.defeat;
+};
+
+Game.prototype.updateCounters = function(playerCounters) {
+    this.round++;
+    this.counters.victory += playerCounters.victory;
+    this.counters.defeat += playerCounters.defeat;
+    this.showCounters();
 };
 
 // This listens for key presses and sends the keys to your
@@ -160,13 +216,6 @@ function addEnemy(i) {
     allEnemies.push(new Enemy(i));
 }
 
-function startGame() {
-    player.reset();
-    allEnemies = [];
-    for (var i = 0; i < 3; i++) {
-        addEnemy(i);
-    }
-}
-
-var player = new Player();
-startGame();
+player = new Player();
+game = new Game();
+game.start();

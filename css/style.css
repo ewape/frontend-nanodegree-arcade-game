@@ -1,3 +1,70 @@
+html {
+	font-size: 62.5%;
+}
+
+* {
+	box-sizing: border-box;
+}
+
 body {
     text-align: center;
+    margin: 0;
+    font-size: 1.6rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    height: 100vh;
+    background-color: burlywood;
+    font-family: monospace;
+}
+
+.counters {
+	width: 505px;
+	margin: 0 auto;
+	display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: -4rem;
+}
+
+.counter {
+	font-size: 6rem;  
+    margin: 0;
+    line-height: 1;
+    min-width: 8rem;
+    height: 8rem;
+    background: beige;
+    padding: 1rem 0; 
+    border-radius: 50%;
+}
+
+.counter small {
+	display: inline-block;
+	font-size: 1.4rem;
+	text-align: right;
+}
+
+.counters-total {
+	margin-bottom: 0;
+}
+
+.counters-total .counter {
+	font-size: 3rem;
+	height: auto;
+	border-radius: 0;
+	background-color: transparent;
+	color: #906732;
+}
+
+.victory {
+	color: #4caf50;
+}
+
+.defeat {
+	color: #f44336;
+}
+
+.round {
+	color: #906732;
 }
